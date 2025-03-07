@@ -1,6 +1,4 @@
 // src/App.tsx
-import React from 'react';
-
 import './index.css';
 import FloodPredictionApp from './components/floodPrediction';
 

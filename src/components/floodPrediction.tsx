@@ -165,6 +165,7 @@ const FloodPredictionApp: React.FC = () => {
     };
     
     // Get risk score based on community and timeframe
+    //@ts-ignore
     const getRiskScore = (community: string, timeframe: 'today' | 'tomorrow' | 'week' | 'month' | 'year'): number => {
       // Use API data if available, otherwise fallback to sample data
       const forecastData = apiData?.forecast || sampleApiData.forecast;
@@ -512,6 +513,7 @@ const FloodPredictionApp: React.FC = () => {
       const riskInfo = getRiskLevel(riskScore);
       
       // Chart height based on fullscreen mode
+      //@ts-ignore
       const chartHeight = fullscreenChart ? 'h-screen fixed top-0 left-0 z-50 bg-white dark:bg-gray-900 p-6' : 'h-96';
       
       return (
