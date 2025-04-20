@@ -22,6 +22,8 @@ interface ForecastItem {
 interface ApiData {
   community: string;
   forecast: ForecastItem[];
+  average_risk?: number;
+  message: string; // Risk message from the backend
 }
 
 interface HistoryItem {
@@ -29,6 +31,7 @@ interface HistoryItem {
   community: string;
   date: string;
   risk: number;
+  message: string; // Added risk message
 }
 
 interface RiskInfo {
@@ -54,6 +57,7 @@ const sampleApiData: ApiData = {
     { Date: "2025-04-20", Prediction: 10.53 },
     { Date: "2025-04-21", Prediction: 43.84 },
   ],
+  message: "High Risk" // Default message
 };
 
 // Fallback communities and periods
@@ -219,6 +223,34 @@ const FloodPredictionApp: React.FC = () => {
         }
         const data = await response.json();
         setApiData(data);
+        
+        // Add to history now that we have API data with proper message
+        const newHistoryItem: HistoryItem = {
+          id: Date.now(),
+          community,
+          date: new Date().toISOString().split("T")[0],
+          risk: data.average_risk || calculateAverageRisk(data.forecast),
+          message: data.message // Use message from API
+        };
+
+        // Add to history without duplicating entries
+        setHistory(prevHistory => {
+          // Check if we already have this community in the recent history
+          const existingIndex = prevHistory.findIndex(
+            item => item.community === community && item.date === newHistoryItem.date
+          );
+          
+          if (existingIndex !== -1) {
+            // Replace the existing entry
+            const updatedHistory = [...prevHistory];
+            updatedHistory[existingIndex] = newHistoryItem;
+            return updatedHistory;
+          } else {
+            // Add new entry at the beginning
+            return [newHistoryItem, ...prevHistory];
+          }
+        });
+        
       } catch (error) {
         console.error("Error fetching forecast data:", error);
         // Fallback to sample data on error
@@ -233,6 +265,13 @@ const FloodPredictionApp: React.FC = () => {
     }
   }, [selectedCommunity, timeframe]);
 
+  // Calculate average risk from forecast data
+  const calculateAverageRisk = (forecast: ForecastItem[]): number => {
+    if (!forecast || forecast.length === 0) return 0;
+    const sum = forecast.reduce((acc, item) => acc + item.Prediction, 0);
+    return parseFloat((sum / forecast.length).toFixed(2));
+  };
+
   // Toggle dark mode
   const toggleDarkMode = (): void => {
     setDarkMode(!darkMode);
@@ -242,57 +281,18 @@ const FloodPredictionApp: React.FC = () => {
   const handleCommunitySelect = (community: string): void => {
     setSelectedCommunity(community);
     setPage("prediction");
-
-    // Add to history after API data is loaded
-    setTimeout(() => {
-      const newHistoryItem: HistoryItem = {
-        id: Date.now(),
-        community,
-        date: new Date().toISOString().split("T")[0],
-        risk: getRiskScore(community),
-      };
-
-      setHistory([newHistoryItem, ...history]);
-    }, 1000); // Wait for API data
   };
 
   // Get risk score based on community and timeframe
-  //@ts-expect-error - not used
-  const getRiskScore = (community: string): number => {
-    // Use API data if available, otherwise fallback to sample data
-    const forecastData = apiData?.forecast || sampleApiData.forecast;
-
-    if (!forecastData || forecastData.length === 0) return 0;
-
-    switch (timeframe) {
-      case "today":
-        return forecastData[0]?.Prediction || 0;
-      case "tomorrow":
-        return forecastData.length > 1
-          ? forecastData[1]?.Prediction || 0
-          : forecastData[0]?.Prediction || 0;
-      case "week":
-        // Average of first 7 days or all days if less than 7
-        return parseFloat(
-          (
-            forecastData
-              .slice(0, 7)
-              .reduce((sum, item) => sum + item.Prediction, 0) /
-            (forecastData.length >= 7 ? 7 : forecastData.length)
-          ).toFixed(2)
-        );
-      case "month":
-      case "year":
-        // Average of all days
-        return parseFloat(
-          (
-            forecastData.reduce((sum, item) => sum + item.Prediction, 0) /
-            forecastData.length
-          ).toFixed(2)
-        );
-      default:
-        return forecastData[0]?.Prediction || 0;
+  const getRiskScore = (): number => {
+    // Use API data average_risk if available
+    if (apiData?.average_risk !== undefined) {
+      return apiData.average_risk;
     }
+    
+    // Otherwise calculate from forecast data
+    const forecastData = apiData?.forecast || sampleApiData.forecast;
+    return calculateAverageRisk(forecastData);
   };
 
   // Get chart data
@@ -307,6 +307,19 @@ const FloodPredictionApp: React.FC = () => {
     if (score < 20) return { level: "Moderate", color: "text-yellow-500" };
     if (score < 30) return { level: "High", color: "text-orange-500" };
     return { level: "Severe", color: "text-red-500" };
+  };
+
+  // Get risk message from API or calculate based on score
+  const getRiskMessage = (): string => {
+    if (apiData?.message) {
+      return apiData.message;
+    }
+    
+    const score = getRiskScore();
+    if (score < 10) return "Low Risk";
+    if (score < 20) return "Moderate Risk";
+    if (score < 30) return "High Risk";
+    return "Severe Risk";
   };
 
   // Component for the Home Page
@@ -682,14 +695,14 @@ const FloodPredictionApp: React.FC = () => {
   // Component for the Prediction Results Page
   const PredictionPage: React.FC = () => {
     const chartData = getChartData();
-    const riskScore = getRiskScore(selectedCommunity);
+    const riskScore = getRiskScore();
     const riskInfo = getRiskLevel(riskScore);
+    const riskMessage = getRiskMessage();
 
     // Chart height based on fullscreen mode
-    //@ts-expect-error -- not used
-    const chartHeight = fullscreenChart
-      ? "h-screen fixed top-0 left-0 z-50 bg-white dark:bg-gray-900 p-6"
-      : "h-96";
+    // const chartHeight = fullscreenChart
+    //   ? "h-screen fixed top-0 left-0 z-50 bg-white dark:bg-gray-900 p-6"
+    //   : "h-96";
 
     return (
       <div className="p-6 w-full">
@@ -739,7 +752,7 @@ const FloodPredictionApp: React.FC = () => {
               </div>
               <div className="text-center mb-2">
                 <span className={`text-lg font-medium ${riskInfo.color}`}>
-                  {riskInfo.level} Risk
+                  {riskMessage}
                 </span>
               </div>
               <p className="text-center text-gray-500 dark:text-gray-400">
