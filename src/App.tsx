@@ -1,11 +1,13 @@
 // src/App.tsx
+import FloodPredictionPage from './components/floodPrediction';
+
 import './index.css';
-import FloodPredictionApp from './components/floodPrediction';
+
 
 function App() {
   return (
     <div className="w-full">
-      <FloodPredictionApp />
+      <FloodPredictionPage />
     </div>
   );
 }
