@@ -111,6 +111,9 @@ const FloodPredictionApp: React.FC = () => {
               chartType={chartType}
               setChartType={setChartType}
               fullscreenChart={fullscreenChart}
+              periods={periods}
+              timeframe={timeframe}
+              setTimeframe={setTimeframe}
               toggleFullscreen={() => setFullscreenChart(!fullscreenChart)}
             />
           )}
