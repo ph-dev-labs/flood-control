@@ -107,6 +107,7 @@ const FloodPredictionApp: React.FC = () => {
             <PredictionPage
               selectedCommunity={selectedCommunity}
               loading={loading}
+              //@ts-ignore
               apiData={apiData}
               chartType={chartType}
               setChartType={setChartType}
