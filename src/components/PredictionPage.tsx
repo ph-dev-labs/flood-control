@@ -206,7 +206,7 @@ const PredictionPage: React.FC<PredictionPageProps> = ({
                   {(apiData as ExtendedApiData).daily_flood_status["High Chance"]?.length > 0 && (
                     <div>
                       <h3 className="font-medium text-lg text-red-600 mb-2">High Chance of Flooding</h3>
-                      <ul className="bg-red-50 p-3 rounded-md">
+                      <ul className="p-3 rounded-md">
                         {(apiData as ExtendedApiData).daily_flood_status["High Chance"].map(date => (
                           <li key={date} className="mb-1 flex items-center">
                             <AlertTriangle className="text-red-500 mr-2" size={16} />
@@ -220,7 +220,7 @@ const PredictionPage: React.FC<PredictionPageProps> = ({
                   {(apiData as ExtendedApiData).daily_flood_status["Neutral"]?.length > 0 && (
                     <div>
                       <h3 className="font-medium text-lg text-yellow-600 mb-2">Moderate Flood Risk</h3>
-                      <ul className="bg-yellow-50 p-3 rounded-md">
+                      <ul className="p-3 rounded-md">
                         {(apiData as ExtendedApiData).daily_flood_status["Neutral"].map(date => (
                           <li key={date} className="mb-1 flex items-center">
                             <Clock className="text-yellow-500 mr-2" size={16} />
@@ -234,7 +234,7 @@ const PredictionPage: React.FC<PredictionPageProps> = ({
                   {(apiData as ExtendedApiData).daily_flood_status["Unlikely"]?.length > 0 && (
                     <div>
                       <h3 className="font-medium text-lg text-green-600 mb-2">Flooding Unlikely</h3>
-                      <ul className="bg-green-50 p-3 rounded-md">
+                      <ul className=" p-3 rounded-md">
                         {(apiData as ExtendedApiData).daily_flood_status["Unlikely"].map(date => (
                           <li key={date} className="mb-1 flex items-center">
                             <CheckCircle className="text-green-500 mr-2" size={16} />
