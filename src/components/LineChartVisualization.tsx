@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import  { useState, useEffect, useRef } from "react";
 
 const CustomLineGraph = ({ data = [], height = "300px" }) => {
   const [graphData, setGraphData] = useState([]);
